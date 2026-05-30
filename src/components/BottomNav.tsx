@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Search, ClipboardList, UserCircle, LogOut } from 'lucide-react';
+import { Home, Search, ClipboardList, UserCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAuthModal } from '../context/AuthModalContext';
 
@@ -11,7 +11,7 @@ const TABS = [
 ];
 
 const BottomNav = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { openAuth } = useAuthModal();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -19,12 +19,6 @@ const BottomNav = () => {
   const handleAccount = () => {
     if (user) navigate('/my-bookings');
     else openAuth('login');
-  };
-
-  const handleLogout = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    logout();
-    navigate('/');
   };
 
   const isActive = (path: string) =>
@@ -87,21 +81,6 @@ const BottomNav = () => {
         </span>
       </button>
 
-      {/* Logout pill — only when logged in */}
-      <AnimatePresence>
-        {user && (
-          <motion.button
-            className="bottom-nav__logout"
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.7 }}
-            onClick={handleLogout}
-            title="Đăng xuất"
-          >
-            <LogOut size={14} strokeWidth={2} />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </nav>
   );
 };
