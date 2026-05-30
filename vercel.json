@@ -3,9 +3,7 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://180-93-35-55.sslip.io/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "env": {
-    "VITE_API_URL": "https://180-93-35-55.sslip.io/api"
-  }
+  ]
 }
