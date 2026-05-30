@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// API proxied via Vercel rewrites → /api/* → https://180-93-35-55.sslip.io/api/*
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
