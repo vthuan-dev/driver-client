@@ -37,7 +37,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const res = await authAPI.login({ phone, password });
     const { token: t, user: u } = res.data;
     if (u.role !== 'customer') {
-      throw new Error('Tài khoản này không phải tài khoản khách hàng');
+      throw new Error(
+        u.role === 'driver'
+          ? 'Đây là app khách hàng. Tài xế vui lòng truy cập driver-uenm.vercel.app'
+          : 'Tài khoản này không có quyền đăng nhập vào ứng dụng khách hàng'
+      );
     }
     localStorage.setItem('customer_token', t);
     localStorage.setItem('customer_user', JSON.stringify(u));

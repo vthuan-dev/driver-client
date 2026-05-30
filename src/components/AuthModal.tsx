@@ -125,7 +125,16 @@ const AuthModal = () => {
                     <input className="auth-field__input" type="password" placeholder="Mật khẩu"
                       value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} />
                   </div>
-                  {error && <div className="auth-error">{error}</div>}
+                  {error && (
+                    <div className="auth-error">
+                      {error.includes('driver-uenm') ? (
+                        <>Đây là app khách hàng. Tài xế vui lòng vào{' '}
+                          <a href="https://driver-uenm.vercel.app" target="_blank" rel="noreferrer"
+                            style={{ color: '#00b14f', fontWeight: 700 }}>driver-uenm.vercel.app</a>
+                        </>
+                      ) : error}
+                    </div>
+                  )}
                   <button type="submit" className="auth-btn" disabled={loading}>
                     {loading ? 'Đang đăng nhập...' : <><LogIn size={16} /> Đăng nhập</>}
                   </button>
