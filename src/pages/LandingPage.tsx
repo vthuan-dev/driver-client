@@ -230,13 +230,16 @@ const LandingPage = () => {
                   <span className="req-card__time">{timeAgo(r.createdAt)}</span>
                 </div>
                 <div className="req-card__phone">📞 {maskPhone(r.phone)}</div>
-                <div className="req-card__route">
-                  <span className="dot dot--green" />
-                  <span>{r.startPoint}</span>
-                </div>
-                <div className="req-card__route">
-                  <span className="dot dot--red" />
-                  <span>{r.endPoint}</span>
+                <div className="req-card__route-block">
+                  <div className="req-card__route-line">
+                    <span className="dot dot--green" />
+                    <span className="req-card__connector" />
+                    <span className="dot dot--red" />
+                  </div>
+                  <div className="req-card__route-labels">
+                    <span>{r.startPoint}</span>
+                    <span>{r.endPoint}</span>
+                  </div>
                 </div>
                 {r.note && <div className="req-card__note">📝 {r.note}</div>}
                 <div className="req-card__price-row">
