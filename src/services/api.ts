@@ -54,7 +54,8 @@ export const requestsAPI = {
     region?: string;
   }) => api.post('/requests', data),
   getMyRequests: () => api.get('/requests/my-requests'),
-  getLatest: (limit = 5) => api.get('/requests', { params: { status: 'waiting', limit } })
+  getLatest: (limit = 6, region?: string) =>
+    api.get('/requests', { params: { status: 'waiting', limit, ...(region ? { region } : {}) } })
 };
 
 export default api;

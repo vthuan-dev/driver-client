@@ -55,10 +55,10 @@ const LandingPage = () => {
   const [latestRequests, setLatestRequests] = useState<any[]>([]);
 
   useEffect(() => {
-    requestsAPI.getLatest(6)
+    requestsAPI.getLatest(6, region)
       .then(res => setLatestRequests(res.data?.requests || []))
       .catch(() => {});
-  }, []);
+  }, [region]);
 
   const maskPhone = (p: string) => p.length < 6 ? p : p.slice(0, 3) + ' xxxx ' + p.slice(-3);
   const timeAgo = (iso: string) => {
