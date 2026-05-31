@@ -1,4 +1,4 @@
-import { Phone, MapPin, Star } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Driver } from '../types';
 
 interface DriverCardProps {
@@ -8,73 +8,63 @@ interface DriverCardProps {
   isRecent?: boolean;
 }
 
-const getStars = (id: number) => (((id * 7) % 10) >= 5 ? 5.0 : 4.5);
+const maskPhone = (phone: string) => {
+  if (phone.length < 6) return phone;
+  return phone.slice(0, 3) + ' xxxx ' + phone.slice(-3);
+};
 
 const DriverCard = ({ driver, onBook, isNew, isRecent }: DriverCardProps) => {
-  const rating = getStars(driver.id);
   const [from, to] = driver.route.split(/[⇌\-–→]+/).map(s => s.trim());
 
   return (
     <div className="driver-card">
-      {/* Header band */}
-      <div className="driver-card__header">
-        <div className="driver-card__header-left">
-          <span className="driver-card__type-badge">TÀI XẾ</span>
-          {isNew && <span className="badge-new">Mới</span>}
-          {isRecent && <span className="badge-recent">Vừa xong</span>}
+      {/* Top row: badges */}
+      <div className="driver-card__top">
+        <div style={{ display: 'flex', gap: 6 }}>
+          {isNew    && <span className="badge-new">⚡ Mới</span>}
+          {isRecent && <span className="badge-recent">✅ Vừa xong</span>}
+          {!isNew && !isRecent && <span className="driver-card__type-badge">TÀI XẾ</span>}
         </div>
+      </div>
+
+      {/* Name + phone */}
+      <div className="driver-card__name">{driver.name}</div>
+      <div className="driver-card__subphone">
+        <Phone size={12} color="#94a3b8" />
+        <span>Liên hệ: {maskPhone(driver.phone)}</span>
+      </div>
+
+      {/* Route with dots */}
+      <div className="driver-card__route-dots">
+        <div className="driver-card__dot driver-card__dot--from">
+          <span className="dot dot--green" />
+          <span>{from || driver.route}</span>
+        </div>
+        {to && (
+          <div className="driver-card__dot driver-card__dot--to">
+            <span className="dot dot--red" />
+            <span>{to}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Note */}
+      {driver.note && (
+        <div className="driver-card__note">Ghi chú: {driver.note}</div>
+      )}
+
+      {/* Price */}
+      <div className="driver-card__price-row">
+        Giá:{' '}
         <span className="driver-card__price">
-          {driver.price ? driver.price.toLocaleString('vi-VN') + 'đ' : 'Thương lượng'}
+          {driver.price ? Number(driver.price).toLocaleString('vi-VN') + ' VND' : 'Thương lượng'}
         </span>
       </div>
 
-      {/* Body */}
-      <div className="driver-card__body">
-        {/* Avatar column */}
-        <div className="driver-card__avatar-col">
-          <div className="driver-card__avatar">
-            {driver.avatar
-              ? <img src={driver.avatar} alt={driver.name} />
-              : driver.name.charAt(0).toUpperCase()}
-          </div>
-          <div className="driver-card__rating">
-            <Star size={11} fill="#f59e0b" color="#f59e0b" />
-            <span>{rating.toFixed(1)}</span>
-          </div>
-        </div>
-
-        {/* Info column */}
-        <div className="driver-card__info">
-          <div className="driver-card__name">{driver.name}</div>
-
-          <div className="driver-card__row">
-            <MapPin size={13} color="#00b14f" />
-            <div className="driver-card__route-detail">
-              <span className="driver-card__route-label">Tuyến đường</span>
-              <span className="driver-card__route-value">
-                {from && to ? <>{from} <span style={{color:'#94a3b8'}}>→</span> {to}</> : driver.route}
-              </span>
-            </div>
-          </div>
-
-          <div className="driver-card__row">
-            <Phone size={13} color="#64748b" />
-            <span className="driver-card__phone">{driver.phone}</span>
-          </div>
-          {driver.note && (
-            <div className="driver-card__row" style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
-              📝 {driver.note}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Footer CTA */}
-      <div className="driver-card__footer">
-        <button className="driver-card__book-btn" onClick={() => onBook(driver)}>
-          ĐẶT NGAY
-        </button>
-      </div>
+      {/* CTA */}
+      <button className="driver-card__book-btn" onClick={() => onBook(driver)}>
+        <Phone size={15} strokeWidth={2.2} /> ĐẶT NGAY
+      </button>
     </div>
   );
 };

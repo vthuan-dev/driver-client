@@ -323,75 +323,74 @@ body {
 /* ─── Driver card ───────────────────────────────────────────────────── */
 .driver-card {
   background: #fff; border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 14px rgba(0,0,0,0.07);
   border: 1px solid #f1f5f9;
-  margin-bottom: 10px; overflow: hidden;
+  padding: 14px 16px 14px;
+  margin-bottom: 10px;
   transition: box-shadow 0.15s;
 }
-.driver-card:active { box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.driver-card:active { box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 
-/* Header band */
-.driver-card__header {
+/* Top badges row */
+.driver-card__top {
   display: flex; align-items: center; justify-content: space-between;
-  background: #f8fafc; border-bottom: 1px solid #f1f5f9;
-  padding: 7px 12px;
+  margin-bottom: 8px;
 }
-.driver-card__header-left { display: flex; align-items: center; gap: 6px; }
 .driver-card__type-badge {
   background: #00b14f; color: #fff;
   font-size: 9px; font-weight: 800; letter-spacing: 1px;
-  padding: 2px 8px; border-radius: 4px; text-transform: uppercase;
+  padding: 2px 9px; border-radius: 4px; text-transform: uppercase;
+}
+
+/* Name */
+.driver-card__name {
+  font-size: 15px; font-weight: 800; color: #111827;
+  margin-bottom: 3px;
+}
+
+/* Sub phone */
+.driver-card__subphone {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: #94a3b8; margin-bottom: 10px;
+}
+
+/* Route dots */
+.driver-card__route-dots {
+  display: flex; flex-direction: column; gap: 6px;
+  padding-left: 4px; margin-bottom: 8px;
+}
+.driver-card__dot {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: #1e293b;
+}
+.dot {
+  width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0;
+}
+.dot--green { background: #00b14f; }
+.dot--red   { background: #ef4444; }
+
+/* Note */
+.driver-card__note {
+  font-size: 12px; color: #64748b; font-style: italic;
+  margin-bottom: 8px; padding-left: 4px;
+}
+
+/* Price row */
+.driver-card__price-row {
+  font-size: 13px; color: #374151; font-weight: 500;
+  margin-bottom: 12px;
 }
 .driver-card__price {
-  font-size: 12px; font-weight: 700; color: #00b14f;
+  font-size: 15px; font-weight: 800; color: #00b14f;
 }
 
-/* Body */
-.driver-card__body {
-  display: flex; gap: 12px; padding: 12px 12px 10px;
-}
-
-/* Avatar column */
-.driver-card__avatar-col {
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  flex-shrink: 0;
-}
-.driver-card__avatar {
-  width: 52px; height: 52px; border-radius: 999px;
-  background: linear-gradient(135deg, #00b14f, #0a8f43);
-  display: grid; place-items: center;
-  font-weight: 800; font-size: 20px; color: #fff; overflow: hidden;
-  border: 2px solid #e6f9f0;
-}
-.driver-card__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.driver-card__rating {
-  display: flex; align-items: center; gap: 3px;
-  font-size: 11px; font-weight: 700; color: #92400e;
-}
-
-/* Info column */
-.driver-card__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
-.driver-card__name { font-size: 15px; font-weight: 800; color: #111827; }
-.driver-card__row {
-  display: flex; align-items: flex-start; gap: 6px;
-}
-.driver-card__route-detail { display: flex; flex-direction: column; gap: 1px; }
-.driver-card__route-label {
-  font-size: 9px; font-weight: 700; color: #94a3b8;
-  text-transform: uppercase; letter-spacing: 0.8px;
-}
-.driver-card__route-value { font-size: 13px; font-weight: 600; color: #1e293b; }
-.driver-card__phone { font-size: 13px; color: #64748b; font-weight: 500; }
-
-/* Footer */
-.driver-card__footer {
-  padding: 0 12px 12px;
-}
+/* Book button */
 .driver-card__book-btn {
   width: 100%; border: 0; border-radius: 10px;
   background: #00b14f; color: #fff;
-  padding: 11px; font-size: 13px; font-weight: 800;
-  letter-spacing: 0.8px; cursor: pointer; font-family: inherit;
+  padding: 12px; font-size: 14px; font-weight: 800;
+  letter-spacing: 0.5px; cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
   box-shadow: 0 4px 12px rgba(0,177,79,0.25);
   transition: filter 0.15s;
 }
