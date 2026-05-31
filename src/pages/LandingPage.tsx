@@ -220,6 +220,34 @@ const LandingPage = () => {
         {/* Region label */}
         <p className="region-label">{regionLabel}</p>
 
+        {/* ── Latest waiting requests ── */}
+        {latestRequests.length > 0 && (
+          <>
+            <h2 className="section-heading" style={{ marginTop: 8 }}>⚡ Cuốc xe đang chờ tài xế</h2>
+            {latestRequests.map((r) => (
+              <div key={r._id ?? r.id} className="req-card">
+                <div className="req-card__top">
+                  <span className="req-card__name">{r.name}</span>
+                  <span className="req-card__time">{timeAgo(r.createdAt)}</span>
+                </div>
+                <div className="req-card__phone">📞 {maskPhone(r.phone)}</div>
+                <div className="req-card__route">
+                  <span className="dot dot--green" />
+                  <span>{r.startPoint}</span>
+                </div>
+                <div className="req-card__route">
+                  <span className="dot dot--red" />
+                  <span>{r.endPoint}</span>
+                </div>
+                {r.note && <div className="req-card__note">📝 {r.note}</div>}
+                <div className="req-card__price-row">
+                  Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
         {/* Driver list */}
         {loading ? (
           [1, 2, 3].map((i) => (
@@ -259,34 +287,6 @@ const LandingPage = () => {
             ))}
           </AnimatePresence>
         )}
-      {/* ── Latest waiting requests ── */}
-      {latestRequests.length > 0 && (
-        <>
-          <h2 className="section-heading" style={{ marginTop: 24 }}>⚡ Cuốc xe đang chờ tài xế</h2>
-          {latestRequests.map((r) => (
-            <div key={r._id ?? r.id} className="req-card">
-              <div className="req-card__top">
-                <span className="req-card__name">{r.name}</span>
-                <span className="req-card__time">{timeAgo(r.createdAt)}</span>
-              </div>
-              <div className="req-card__phone">📞 {maskPhone(r.phone)}</div>
-              <div className="req-card__route">
-                <span className="dot dot--green" />
-                <span>{r.startPoint}</span>
-              </div>
-              <div className="req-card__route">
-                <span className="dot dot--red" />
-                <span>{r.endPoint}</span>
-              </div>
-              {r.note && <div className="req-card__note">📝 {r.note}</div>}
-              <div className="req-card__price-row">
-                Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
-              </div>
-            </div>
-          ))}
-        </>
-      )}
-
       </div>
 
       {/* Floating CTA */}
