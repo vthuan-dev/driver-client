@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthModal } from '../context/AuthModalContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { driversAPI } from '../services/api';
+import { driversAPI, requestsAPI } from '../services/api';
 import { Driver } from '../types';
 import DriverCard from '../components/DriverCard';
 import BookingModal from '../components/BookingModal';
@@ -52,6 +52,23 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [latestRequests, setLatestRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    requestsAPI.getLatest(6)
+      .then(res => setLatestRequests(res.data?.requests || []))
+      .catch(() => {});
+  }, []);
+
+  const maskPhone = (p: string) => p.length < 6 ? p : p.slice(0, 3) + ' xxxx ' + p.slice(-3);
+  const timeAgo = (iso: string) => {
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (diff < 1) return 'Vừa xong';
+    if (diff < 60) return `${diff} phút trước`;
+    const h = Math.floor(diff / 60);
+    if (h < 24) return `${h} giờ trước`;
+    return `${Math.floor(h / 24)} ngày trước`;
+  };
 
   const fetchDrivers = useCallback(async (reg: Region, fromVal: string, toVal: string) => {
     setLoading(true);
@@ -128,7 +145,7 @@ const LandingPage = () => {
 
       {/* ── Content ── */}
       <div className="content">
-
+#root > div > div.content > div:nth-child(6) > div
         {/* Search form */}
         <form className="search-form" onSubmit={handleSearch}>
           <div className="search-form__card">
@@ -240,6 +257,34 @@ const LandingPage = () => {
             ))}
           </AnimatePresence>
         )}
+      {/* ── Latest waiting requests ── */}
+      {latestRequests.length > 0 && (
+        <>
+          <h2 className="section-heading" style={{ marginTop: 24 }}>⚡ Cuốc xe đang chờ tài xế</h2>
+          {latestRequests.map((r) => (
+            <div key={r._id ?? r.id} className="req-card">
+              <div className="req-card__top">
+                <span className="req-card__name">{r.name}</span>
+                <span className="req-card__time">{timeAgo(r.createdAt)}</span>
+              </div>
+              <div className="req-card__phone">📞 {maskPhone(r.phone)}</div>
+              <div className="req-card__route">
+                <span className="dot dot--green" />
+                <span>{r.startPoint}</span>
+              </div>
+              <div className="req-card__route">
+                <span className="dot dot--red" />
+                <span>{r.endPoint}</span>
+              </div>
+              {r.note && <div className="req-card__note">📝 {r.note}</div>}
+              <div className="req-card__price-row">
+                Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
       </div>
 
       {/* Floating CTA */}
