@@ -53,12 +53,13 @@ const LandingPage = () => {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [latestRequests, setLatestRequests] = useState<any[]>([]);
+  const activeProvince = province && !province.startsWith('Tất cả') ? province : '';
 
   useEffect(() => {
-    requestsAPI.getLatest(6, region)
+    requestsAPI.getLatest(6, region, activeProvince)
       .then(res => setLatestRequests(res.data?.requests || []))
       .catch(() => {});
-  }, [region]);
+  }, [region, province]);
 
   const maskPhone = (p: string) => p.length < 6 ? p : p.slice(0, 3) + ' xxxx ' + p.slice(-3);
   const timeAgo = (iso: string) => {
@@ -70,12 +71,13 @@ const LandingPage = () => {
     return `${Math.floor(h / 24)} ngày trước`;
   };
 
-  const fetchDrivers = useCallback(async (reg: Region, fromVal: string, toVal: string) => {
+  const fetchDrivers = useCallback(async (reg: Region, fromVal: string, toVal: string, prov: string) => {
     setLoading(true);
     try {
       const params: Record<string, string> = { region: reg };
       if (fromVal.trim()) params.from = fromVal.trim();
       if (toVal.trim()) params.to = toVal.trim();
+      if (prov.trim()) params.keyword = prov.trim();
       const res = await driversAPI.getDrivers(params);
       setDrivers(res.data.drivers || []);
     } catch {
@@ -86,13 +88,13 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => fetchDrivers(region, from, to), 300);
+    const t = setTimeout(() => fetchDrivers(region, from, to, activeProvince), 300);
     return () => clearTimeout(t);
-  }, [region, from, to, fetchDrivers]);
+  }, [region, from, to, province, fetchDrivers]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchDrivers(region, from, to);
+    fetchDrivers(region, from, to, activeProvince);
   };
 
   const handleBookingSuccess = () => {
