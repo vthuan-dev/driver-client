@@ -74,7 +74,9 @@ const LandingPage = () => {
   const fetchDrivers = useCallback(async (reg: Region, fromVal: string, toVal: string, prov: string) => {
     setLoading(true);
     try {
-      const params: Record<string, string> = { region: reg };
+      const params: Record<string, string> = {};
+      // Only filter by region when no specific route is searched
+      if (!fromVal.trim() && !toVal.trim()) params.region = reg;
       if (fromVal.trim()) params.from = fromVal.trim();
       if (toVal.trim()) params.to = toVal.trim();
       if (prov.trim()) params.keyword = prov.trim();
