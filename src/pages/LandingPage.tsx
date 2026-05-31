@@ -229,7 +229,7 @@ const LandingPage = () => {
                   <span className="req-card__name">{r.name}</span>
                   <span className="req-card__time">{timeAgo(r.createdAt)}</span>
                 </div>
-                <div className="req-card__phone">📞 {maskPhone(r.phone)}</div>
+                <div className="req-card__phone">📞 {r.phone}</div>
                 <div className="req-card__route-block">
                   <div className="req-card__route-line">
                     <span className="dot dot--green" />
