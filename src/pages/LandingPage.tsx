@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MapPin, Navigation2, ArrowUpDown } from 'lucide-react';
+import { MapPin, Navigation2, ArrowUpDown, Phone } from 'lucide-react';
 import ProvinceInput from '../components/ProvinceInput';
 import { useNavigate } from 'react-router-dom';
 import { useAuthModal } from '../context/AuthModalContext';
@@ -242,6 +242,23 @@ const LandingPage = () => {
                 <div className="req-card__price-row">
                   Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
                 </div>
+                <button
+                  className="driver-card__book-btn"
+                  style={{ marginTop: 10 }}
+                  onClick={() => {
+                    if (!user) { openAuth('login'); return; }
+                    setSelectedDriver({
+                      id: r.id, _id: r._id ?? r.id,
+                      name: r.name, phone: r.phone,
+                      route: `${r.startPoint} ⇌ ${r.endPoint}`,
+                      region: r.region, isActive: true,
+                      createdAt: r.createdAt,
+                      price: r.price, note: r.note
+                    });
+                  }}
+                >
+                  <Phone size={15} strokeWidth={2.2} /> ĐẶT NGAY
+                </button>
               </div>
             ))}
           </>
