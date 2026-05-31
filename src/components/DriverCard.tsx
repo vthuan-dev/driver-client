@@ -23,7 +23,9 @@ const DriverCard = ({ driver, onBook, isNew, isRecent }: DriverCardProps) => {
           {isNew && <span className="badge-new">Mới</span>}
           {isRecent && <span className="badge-recent">Vừa xong</span>}
         </div>
-        <span className="driver-card__price">Thương lượng</span>
+        <span className="driver-card__price">
+          {driver.price ? driver.price.toLocaleString('vi-VN') + 'đ' : 'Thương lượng'}
+        </span>
       </div>
 
       {/* Body */}
@@ -59,6 +61,11 @@ const DriverCard = ({ driver, onBook, isNew, isRecent }: DriverCardProps) => {
             <Phone size={13} color="#64748b" />
             <span className="driver-card__phone">{driver.phone}</span>
           </div>
+          {driver.note && (
+            <div className="driver-card__row" style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
+              📝 {driver.note}
+            </div>
+          )}
         </div>
       </div>
 

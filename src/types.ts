@@ -17,6 +17,8 @@ export interface Driver {
   region: 'north' | 'central' | 'south';
   isActive: boolean;
   createdAt: string;
+  price?: number | null;
+  note?: string | null;
 }
 
 export interface BookingRequest {
