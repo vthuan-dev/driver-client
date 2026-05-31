@@ -219,8 +219,8 @@ const LandingPage = () => {
         {/* Region label */}
         <p className="region-label">{regionLabel}</p>
 
-        {/* ── Latest waiting requests ── */}
-        {latestRequests.length > 0 && (
+        {/* ── Latest waiting requests (only when NOT searching) ── */}
+        {!from.trim() && !to.trim() && latestRequests.length > 0 && (
           <>
             <h2 className="section-heading" style={{ marginTop: 8 }}>⚡ Cuốc xe đang chờ tài xế</h2>
             {latestRequests.map((r) => (
@@ -305,6 +305,46 @@ const LandingPage = () => {
               </motion.div>
             ))}
           </AnimatePresence>
+        )}
+
+        {/* ── Waiting requests shown BELOW drivers when searching ── */}
+        {(from.trim() || to.trim()) && latestRequests.length > 0 && (
+          <>
+            <h2 className="section-heading" style={{ marginTop: 16 }}>⚡ Cuốc xe đang chờ tài xế</h2>
+            {latestRequests.map((r) => (
+              <div key={(r._id ?? r.id) + '-b'} className="req-card">
+                <div className="req-card__top">
+                  <span className="req-card__name">{r.name}</span>
+                  <span className="req-card__time">{timeAgo(r.createdAt)}</span>
+                </div>
+                <div className="req-card__phone">📞 {r.phone}</div>
+                <div className="req-card__route-block">
+                  <div className="req-card__route-line">
+                    <span className="dot dot--green" />
+                    <span className="req-card__connector" />
+                    <span className="dot dot--red" />
+                  </div>
+                  <div className="req-card__route-labels">
+                    <span>{r.startPoint}</span>
+                    <span>{r.endPoint}</span>
+                  </div>
+                </div>
+                {r.note && <div className="req-card__note">📝 {r.note}</div>}
+                <div className="req-card__price-row">
+                  Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
+                </div>
+                <button className="driver-card__book-btn" style={{ marginTop: 10 }}
+                  onClick={() => {
+                    if (!user) { openAuth('login'); return; }
+                    setSelectedDriver({ id: r.id, _id: r._id ?? r.id, name: r.name, phone: r.phone,
+                      route: `${r.startPoint} ⇌ ${r.endPoint}`, region: r.region, isActive: true,
+                      createdAt: r.createdAt, price: r.price, note: r.note });
+                  }}>
+                  <Phone size={15} strokeWidth={2.2} /> ĐẶT NGAY
+                </button>
+              </div>
+            ))}
+          </>
         )}
       </div>
 
