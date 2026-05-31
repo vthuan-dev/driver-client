@@ -118,12 +118,12 @@ const AuthModal = () => {
                   <div className="auth-field">
                     <span className="auth-field__icon"><Phone size={16} /></span>
                     <input className="auth-field__input" type="tel" placeholder="Số điện thoại"
-                      value={loginForm.phone} onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value })} />
+                      autoComplete="username" value={loginForm.phone} onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value })} />
                   </div>
                   <div className="auth-field">
                     <span className="auth-field__icon"><Lock size={16} /></span>
                     <input className="auth-field__input" type="password" placeholder="Mật khẩu"
-                      value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} />
+                      autoComplete="current-password" value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} />
                   </div>
                   {error && (
                     <div className="auth-error">
@@ -164,12 +164,12 @@ const AuthModal = () => {
                   <div className="auth-field">
                     <span className="auth-field__icon"><Lock size={16} /></span>
                     <input className="auth-field__input" type="password" placeholder="Mật khẩu (tối thiểu 4 ký tự)"
-                      value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} />
+                      autoComplete="new-password" value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} />
                   </div>
                   <div className="auth-field">
                     <span className="auth-field__icon"><Lock size={16} /></span>
                     <input className="auth-field__input" type="password" placeholder="Xác nhận mật khẩu"
-                      value={regForm.confirm} onChange={(e) => setRegForm({ ...regForm, confirm: e.target.value })} />
+                      autoComplete="new-password" value={regForm.confirm} onChange={(e) => setRegForm({ ...regForm, confirm: e.target.value })} />
                   </div>
                   {error && <div className="auth-error">{error}</div>}
                   <button type="submit" className="auth-btn" disabled={loading}>
