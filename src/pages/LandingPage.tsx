@@ -147,7 +147,6 @@ const LandingPage = () => {
 
       {/* ── Content ── */}
       <div className="content">
-#root > div > div.content > div:nth-child(6) > div
         {/* Search form */}
         <form className="search-form" onSubmit={handleSearch}>
           <div className="search-form__card">
