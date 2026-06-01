@@ -272,6 +272,13 @@ const LandingPage = () => {
           </>
         )}
 
+        {/* Search results header */}
+        {(from.trim() || to.trim()) && (
+          <h2 className="section-heading" style={{ marginTop: 8 }}>
+            🔍 Kết quả tìm kiếm{from.trim() ? ` từ ${from.trim()}` : ''}{to.trim() ? ` → ${to.trim()}` : ''}
+          </h2>
+        )}
+
         {/* Driver list */}
         {loading ? (
           [1, 2, 3].map((i) => (

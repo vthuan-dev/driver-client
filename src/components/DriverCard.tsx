@@ -8,8 +8,18 @@ interface DriverCardProps {
   isRecent?: boolean;
 }
 
+const timeAgo = (iso: string) => {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (diff < 1) return 'Vừa xong';
+  if (diff < 60) return `${diff} phút trước`;
+  const h = Math.floor(diff / 60);
+  if (h < 24) return `${h} giờ trước`;
+  return `${Math.floor(h / 24)} ngày trước`;
+};
+
 const DriverCard = ({ driver, onBook, isNew, isRecent }: DriverCardProps) => {
-  const [from, to] = driver.route.split(/[⇌\-–→]+/).map(s => s.trim());
+  const parts = driver.route.split(/[⇌↔⇒→\-–|]+/).map(s => s.trim()).filter(Boolean);
+  const [from, to] = [parts[0], parts[1]];
 
   return (
     <div className="req-card">
@@ -23,9 +33,10 @@ const DriverCard = ({ driver, onBook, isNew, isRecent }: DriverCardProps) => {
         </span>
       </div>
 
-      {/* Phone */}
-      <div className="req-card__phone">
-        <Phone size={12} color="#94a3b8" /> {driver.phone}
+      {/* Phone + time */}
+      <div className="req-card__phone" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span><Phone size={12} color="#94a3b8" /> {driver.phone}</span>
+        {driver.createdAt && <span className="req-card__time">{timeAgo(driver.createdAt)}</span>}
       </div>
 
       {/* Connected route */}
@@ -37,7 +48,7 @@ const DriverCard = ({ driver, onBook, isNew, isRecent }: DriverCardProps) => {
         </div>
         <div className="req-card__route-labels">
           <span>{from || driver.route}</span>
-          <span>{to || '—'}</span>
+          <span>{to || from || driver.route}</span>
         </div>
       </div>
 
