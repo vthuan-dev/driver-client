@@ -53,6 +53,9 @@ const LandingPage = () => {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [latestRequests, setLatestRequests] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const activeProvince = province && !province.startsWith('Tất cả') ? province : '';
 
   useEffect(() => {
@@ -93,13 +96,24 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => fetchDrivers(region, from, to, activeProvince), 300);
+    const t = setTimeout(() => fetchDrivers(region, '', '', activeProvince), 300);
     return () => clearTimeout(t);
-  }, [region, from, to, province, fetchDrivers]);
+  }, [region, province, fetchDrivers]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    fetchDrivers(region, from, to, activeProvince);
+    if (!from.trim() && !to.trim()) { setIsSearching(false); return; }
+    setIsSearching(true);
+    setSearchLoading(true);
+    try {
+      const province = from.trim() || to.trim();
+      const res = await requestsAPI.getLatest(20, region, province);
+      setSearchResults(res.data?.requests || []);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
   const handleBookingSuccess = () => {
@@ -160,9 +174,10 @@ const LandingPage = () => {
               label="Điểm đón"
               placeholder="Chọn tỉnh/thành phố..."
               value={from}
-              onChange={setFrom}
+              onChange={(v) => { setFrom(v); setIsSearching(false); }}
               Icon={MapPin}
               iconClass="search-form__icon search-form__icon--from"
+              region={region}
             />
 
             {/* Divider + swap */}
@@ -182,9 +197,10 @@ const LandingPage = () => {
               label="Điểm trả"
               placeholder="Chọn tỉnh/thành phố..."
               value={to}
-              onChange={setTo}
+              onChange={(v) => { setTo(v); setIsSearching(false); }}
               Icon={Navigation2}
               iconClass="search-form__icon search-form__icon--to"
+              region={region}
             />
           </div>
 
@@ -200,7 +216,7 @@ const LandingPage = () => {
             <button
               key={tab.value}
               className={`region-tab${region === tab.value ? ' active' : ''}`}
-              onClick={() => { setRegion(tab.value); setProvince(''); }}
+              onClick={() => { setRegion(tab.value); setProvince(''); setIsSearching(false); setFrom(''); setTo(''); }}
             >
               {tab.label}
             </button>
@@ -222,10 +238,66 @@ const LandingPage = () => {
         </div>
 
         {/* Region label */}
-        <p className="region-label">{regionLabel}</p>
+        {!isSearching && <p className="region-label">{regionLabel}</p>}
+
+        {/* ── SEARCH RESULTS (when isSearching) ── */}
+        {isSearching && (
+          <>
+            <h2 className="section-heading" style={{ marginTop: 8 }}>
+              🔍 Kết quả tìm kiếm{from.trim() ? ` tại ${from.trim()}` : ''}{to.trim() ? ` → ${to.trim()}` : ''}
+            </h2>
+            {searchLoading ? (
+              [1,2,3].map(i => (
+                <div key={i} className="skeleton-card">
+                  <div className="skeleton" style={{ width: '100%', height: 120, borderRadius: 12 }} />
+                </div>
+              ))
+            ) : searchResults.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state__icon">🔍</div>
+                <p>Không tìm thấy cuốc xe phù hợp</p>
+                <p style={{ marginTop: 4, fontSize: 12 }}>Thử tỉnh khác hoặc đổi miền</p>
+              </div>
+            ) : (
+              searchResults.map((r) => (
+                <div key={r._id ?? r.id} className="req-card">
+                  <div className="req-card__top">
+                    <span className="req-card__name">{r.name}</span>
+                    <span className="req-card__time">{timeAgo(r.createdAt)}</span>
+                  </div>
+                  <div className="req-card__phone">📞 {r.phone}</div>
+                  <div className="req-card__route-block">
+                    <div className="req-card__route-line">
+                      <span className="dot dot--green" />
+                      <span className="req-card__connector" />
+                      <span className="dot dot--red" />
+                    </div>
+                    <div className="req-card__route-labels">
+                      <span>{r.startPoint}</span>
+                      <span>{r.endPoint}</span>
+                    </div>
+                  </div>
+                  {r.note && <div className="req-card__note">📝 {r.note}</div>}
+                  <div className="req-card__price-row">
+                    Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
+                  </div>
+                  <button className="driver-card__book-btn" style={{ marginTop: 10 }}
+                    onClick={() => {
+                      if (!user) { openAuth('login'); return; }
+                      setSelectedDriver({ id: r.id, _id: r._id ?? r.id, name: r.name, phone: r.phone,
+                        route: `${r.startPoint} ⇌ ${r.endPoint}`, region: r.region, isActive: true,
+                        createdAt: r.createdAt, price: r.price, note: r.note });
+                    }}>
+                    <Phone size={15} strokeWidth={2.2} /> ĐẶT NGAY
+                  </button>
+                </div>
+              ))
+            )}
+          </>
+        )}
 
         {/* ── Latest waiting requests (only when NOT searching) ── */}
-        {!from.trim() && !to.trim() && latestRequests.length > 0 && (
+        {!isSearching && latestRequests.length > 0 && (
           <>
             <h2 className="section-heading" style={{ marginTop: 8 }}>⚡ Cuốc xe đang chờ tài xế</h2>
             {latestRequests.map((r) => (
@@ -272,91 +344,46 @@ const LandingPage = () => {
           </>
         )}
 
-        {/* Search results header */}
-        {(from.trim() || to.trim()) && (
-          <h2 className="section-heading" style={{ marginTop: 8 }}>
-            🔍 Kết quả tìm kiếm{from.trim() ? ` từ ${from.trim()}` : ''}{to.trim() ? ` → ${to.trim()}` : ''}
-          </h2>
-        )}
-
-        {/* Driver list */}
-        {loading ? (
-          [1, 2, 3].map((i) => (
-            <div key={i} className="skeleton-card">
-              <div className="skeleton" style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0 }} />
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div className="skeleton" style={{ height: 14, width: '40%' }} />
-                <div className="skeleton" style={{ height: 12, width: '65%' }} />
+        {/* Driver list — only when NOT searching */}
+        {!isSearching && (
+          loading ? (
+            [1, 2, 3].map((i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton" style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div className="skeleton" style={{ height: 14, width: '40%' }} />
+                  <div className="skeleton" style={{ height: 12, width: '65%' }} />
+                </div>
               </div>
+            ))
+          ) : drivers.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__icon">🔍</div>
+              <p>Không tìm thấy tài xế phù hợp</p>
+              <p style={{ marginTop: 4, fontSize: 12 }}>Thử vùng khác hoặc từ khóa khác</p>
             </div>
-          ))
-        ) : drivers.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state__icon">🔍</div>
-            <p>Không tìm thấy tài xế phù hợp</p>
-            <p style={{ marginTop: 4, fontSize: 12 }}>Thử vùng khác hoặc từ khóa khác</p>
-          </div>
-        ) : (
-          <AnimatePresence>
-            {drivers.map((driver, i) => (
-              <motion.div
-                key={driver.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-              >
-                <DriverCard
-                  driver={driver}
-                  onBook={(d) => {
-                    if (!user) { openAuth('login'); return; }
-                    setSelectedDriver(d);
-                  }}
-                  isNew={isNewDriver(driver.createdAt)}
-                  isRecent={isRecentDriver(driver.createdAt)}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        )}
-
-        {/* ── Waiting requests shown BELOW drivers when searching ── */}
-        {(from.trim() || to.trim()) && latestRequests.length > 0 && (
-          <>
-            <h2 className="section-heading" style={{ marginTop: 16 }}>⚡ Cuốc xe đang chờ tài xế</h2>
-            {latestRequests.map((r) => (
-              <div key={(r._id ?? r.id) + '-b'} className="req-card">
-                <div className="req-card__top">
-                  <span className="req-card__name">{r.name}</span>
-                  <span className="req-card__time">{timeAgo(r.createdAt)}</span>
-                </div>
-                <div className="req-card__phone">📞 {r.phone}</div>
-                <div className="req-card__route-block">
-                  <div className="req-card__route-line">
-                    <span className="dot dot--green" />
-                    <span className="req-card__connector" />
-                    <span className="dot dot--red" />
-                  </div>
-                  <div className="req-card__route-labels">
-                    <span>{r.startPoint}</span>
-                    <span>{r.endPoint}</span>
-                  </div>
-                </div>
-                {r.note && <div className="req-card__note">📝 {r.note}</div>}
-                <div className="req-card__price-row">
-                  Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
-                </div>
-                <button className="driver-card__book-btn" style={{ marginTop: 10 }}
-                  onClick={() => {
-                    if (!user) { openAuth('login'); return; }
-                    setSelectedDriver({ id: r.id, _id: r._id ?? r.id, name: r.name, phone: r.phone,
-                      route: `${r.startPoint} ⇌ ${r.endPoint}`, region: r.region, isActive: true,
-                      createdAt: r.createdAt, price: r.price, note: r.note });
-                  }}>
-                  <Phone size={15} strokeWidth={2.2} /> ĐẶT NGAY
-                </button>
-              </div>
-            ))}
-          </>
+          ) : (
+            <AnimatePresence>
+              {drivers.map((driver, i) => (
+                <motion.div
+                  key={driver.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                >
+                  <DriverCard
+                    driver={driver}
+                    onBook={(d) => {
+                      if (!user) { openAuth('login'); return; }
+                      setSelectedDriver(d);
+                    }}
+                    isNew={isNewDriver(driver.createdAt)}
+                    isRecent={isRecentDriver(driver.createdAt)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )
         )}
       </div>
 

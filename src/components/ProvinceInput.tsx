@@ -17,6 +17,12 @@ const ALL_PROVINCES: { region: string; items: string[] }[] = [
   },
 ];
 
+const REGION_KEY_MAP: Record<string, string> = {
+  north: '🏔️ Miền Bắc',
+  central: '🌊 Miền Trung',
+  south: '🌴 Miền Nam',
+};
+
 interface ProvinceInputProps {
   label: string;
   placeholder: string;
@@ -24,9 +30,10 @@ interface ProvinceInputProps {
   onChange: (v: string) => void;
   Icon: LucideIcon;
   iconClass: string;
+  region?: 'north' | 'central' | 'south';
 }
 
-const ProvinceInput = ({ label, placeholder, value, onChange, Icon, iconClass }: ProvinceInputProps) => {
+const ProvinceInput = ({ label, placeholder, value, onChange, Icon, iconClass, region }: ProvinceInputProps) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -56,12 +63,20 @@ const ProvinceInput = ({ label, placeholder, value, onChange, Icon, iconClass }:
     };
   }, [open]);
 
-  const filtered = ALL_PROVINCES.map(group => ({
-    region: group.region,
-    items: query.trim()
-      ? group.items.filter(p => p.toLowerCase().includes(query.toLowerCase()))
-      : group.items,
-  })).filter(g => g.items.length > 0);
+  // If region prop provided, only show provinces from that region (flat list, no grouping)
+  const filteredRegionItems: string[] | null = region
+    ? (ALL_PROVINCES.find(g => g.region === REGION_KEY_MAP[region])?.items ?? [])
+        .filter(p => !query.trim() || p.toLowerCase().includes(query.toLowerCase()))
+    : null;
+
+  const filtered = filteredRegionItems
+    ? []
+    : ALL_PROVINCES.map(group => ({
+        region: group.region,
+        items: query.trim()
+          ? group.items.filter(p => p.toLowerCase().includes(query.toLowerCase()))
+          : group.items,
+      })).filter(g => g.items.length > 0);
 
   const handleSelect = (province: string) => {
     onChange(province);
@@ -114,7 +129,20 @@ const ProvinceInput = ({ label, placeholder, value, onChange, Icon, iconClass }:
             zIndex: 9999,
           }}
         >
-          {filtered.length === 0 ? (
+          {filteredRegionItems !== null ? (
+            filteredRegionItems.length === 0
+              ? <div className="province-dropdown__empty">Không tìm thấy tỉnh</div>
+              : filteredRegionItems.map(province => (
+                  <button
+                    key={province}
+                    type="button"
+                    className={`province-dropdown__item${value === province ? ' province-dropdown__item--active' : ''}`}
+                    onMouseDown={e => { e.preventDefault(); handleSelect(province); }}
+                  >
+                    {province}
+                  </button>
+                ))
+          ) : filtered.length === 0 ? (
             <div className="province-dropdown__empty">Không tìm thấy tỉnh</div>
           ) : (
             filtered.map(group => (
