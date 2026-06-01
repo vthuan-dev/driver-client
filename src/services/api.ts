@@ -57,7 +57,9 @@ export const requestsAPI = {
   }) => api.post('/requests', data),
   getMyRequests: () => api.get('/requests/my-requests'),
   getLatest: (limit = 6, region?: string, province?: string) =>
-    api.get('/requests', { params: { status: 'waiting', limit, ...(region ? { region } : {}), ...(province ? { province } : {}) } })
+    api.get('/requests', { params: { status: 'waiting', limit, ...(region ? { region } : {}), ...(province ? { province } : {}) } }),
+  searchByKeyword: (keyword: string, region?: string) =>
+    api.get('/requests', { params: { status: 'waiting', limit: 20, keyword, ...(region ? { region } : {}) } })
 };
 
 export default api;

@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Phone } from 'lucide-react';
 import DriverCard from '../components/DriverCard';
 import BookingModal from '../components/BookingModal';
 import { Driver } from '../types';
-import { driversAPI } from '../services/api';
+import { driversAPI, requestsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useAuthModal } from '../context/AuthModalContext';
 
 const isNewDriver = (createdAt: string) => Date.now() - new Date(createdAt).getTime() < 1000 * 60 * 60 * 24 * 3;
 const isRecentDriver = (createdAt: string) => Date.now() - new Date(createdAt).getTime() < 1000 * 60 * 10;
@@ -15,41 +18,63 @@ const REGIONS = [
   { value: 'south', label: '🌴 Miền Nam' }
 ];
 
+const timeAgo = (iso: string) => {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (diff < 1) return 'Vừa xong';
+  if (diff < 60) return `${diff} phút trước`;
+  const h = Math.floor(diff / 60);
+  if (h < 24) return `${h} giờ trước`;
+  return `${Math.floor(h / 24)} ngày trước`;
+};
+
 const SearchPage = () => {
+  const { user } = useAuth();
+  const { openAuth } = useAuthModal();
   const [keyword, setKeyword] = useState('');
   const [region, setRegion] = useState('');
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchDrivers = useCallback(async (kw: string, reg: string) => {
+  const doSearch = useCallback(async (kw: string, reg: string) => {
     setLoading(true);
     setError('');
     try {
-      const params: { region?: string; keyword?: string } = {};
-      if (reg) params.region = reg;
-      if (kw.trim()) params.keyword = kw.trim();
-      const res = await driversAPI.getDrivers(params);
-      setDrivers(res.data.drivers || []);
+      const driverParams: { region?: string; keyword?: string } = {};
+      if (reg) driverParams.region = reg;
+      if (kw.trim()) driverParams.keyword = kw.trim();
+
+      const [driverRes, reqRes] = await Promise.all([
+        driversAPI.getDrivers(driverParams),
+        kw.trim()
+          ? requestsAPI.searchByKeyword(kw.trim(), reg || undefined)
+          : Promise.resolve({ data: { requests: [] } })
+      ]);
+      setDrivers(driverRes.data.drivers || []);
+      setRequests(reqRes.data.requests || []);
       setSearched(true);
     } catch {
-      setError('Không thể tải danh sách tài xế. Vui lòng thử lại.');
+      setError('Không thể tải dữ liệu. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Load all on mount
+  useEffect(() => { doSearch('', ''); }, [doSearch]);
+
+  // Realtime search debounce
   useEffect(() => {
-    fetchDrivers('', '');
-  }, [fetchDrivers]);
+    const t = setTimeout(() => doSearch(keyword, region), 400);
+    return () => clearTimeout(t);
+  }, [keyword, region, doSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchDrivers(keyword, region);
+    doSearch(keyword, region);
   };
 
   const handleBookingSuccess = () => {
@@ -57,6 +82,8 @@ const SearchPage = () => {
     setBookingSuccess(true);
     setTimeout(() => setBookingSuccess(false), 5000);
   };
+
+  const totalResults = drivers.length + requests.length;
 
   return (
     <>
@@ -66,19 +93,18 @@ const SearchPage = () => {
           <form className="search-bar" style={{ marginBottom: 8 }} onSubmit={handleSearch}>
             <input
               className="search-bar__input"
-              placeholder="🔍 Tuyến đường, tên tài xế..."
+              placeholder="🔍 Tên tài xế, số điện thoại..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
             <button type="submit" className="search-bar__btn">Tìm</button>
           </form>
         </div>
-        {/* Region chips */}
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 12px 10px', scrollbarWidth: 'none' }}>
           {REGIONS.map((r) => (
             <button
               key={r.value}
-              onClick={() => { setRegion(r.value); fetchDrivers(keyword, r.value); }}
+              onClick={() => setRegion(r.value)}
               style={{
                 flexShrink: 0, border: 0, borderRadius: 999,
                 padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
@@ -93,66 +119,94 @@ const SearchPage = () => {
         </div>
       </div>
 
-      {/* Toast */}
       <AnimatePresence>
         {bookingSuccess && (
-          <motion.div
-            className="toast"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-          >
+          <motion.div className="toast" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
             ✅ Đặt xe thành công! Tài xế sẽ liên hệ bạn sớm.
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Driver list */}
       <div className="content">
         {error && <div className="sheet-error" style={{ marginBottom: 12 }}>{error}</div>}
 
         {loading ? (
           [1, 2, 3].map((i) => (
             <div key={i} className="skeleton-card">
-              <div className="skeleton" style={{ width: 48, height: 48, borderRadius: '50%', flexShrink: 0 }} />
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div className="skeleton" style={{ height: 14, width: '40%' }} />
-                <div className="skeleton" style={{ height: 12, width: '60%' }} />
-              </div>
+              <div className="skeleton" style={{ width: '100%', height: 140, borderRadius: 12 }} />
             </div>
           ))
-        ) : drivers.length === 0 && searched ? (
+        ) : searched && totalResults === 0 ? (
           <div className="empty-state">
             <div className="empty-state__icon">🔍</div>
-            <p>Không tìm thấy tài xế</p>
+            <p>Không tìm thấy kết quả</p>
+            <p style={{ marginTop: 4, fontSize: 12 }}>Thử tên, số điện thoại khác</p>
           </div>
         ) : (
           <>
-            {searched && (
-              <p className="result-count">Tìm thấy <strong>{drivers.length}</strong> tài xế</p>
+            {searched && keyword.trim() && (
+              <p className="result-count">Tìm thấy <strong>{totalResults}</strong> kết quả cho "<strong>{keyword}</strong>"</p>
             )}
-            <AnimatePresence>
-              {drivers.map((driver, i) => (
-                <motion.div key={driver.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                  <DriverCard
-                    driver={driver}
-                    onBook={setSelectedDriver}
-                    isNew={isNewDriver(driver.createdAt)}
-                    isRecent={isRecentDriver(driver.createdAt)}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+
+            {/* Driver cards */}
+            {drivers.length > 0 && (
+              <>
+                {requests.length > 0 && <h3 style={{ fontSize: 13, color: '#64748b', margin: '4px 0 8px', fontWeight: 600 }}>🚗 Tài xế</h3>}
+                <AnimatePresence>
+                  {drivers.map((driver, i) => (
+                    <motion.div key={driver.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                      <DriverCard driver={driver} onBook={(d) => { if (!user) { openAuth('login'); return; } setSelectedDriver(d); }}
+                        isNew={isNewDriver(driver.createdAt)} isRecent={isRecentDriver(driver.createdAt)} />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </>
+            )}
+
+            {/* Waiting request cards */}
+            {requests.length > 0 && (
+              <>
+                {drivers.length > 0 && <h3 style={{ fontSize: 13, color: '#64748b', margin: '12px 0 8px', fontWeight: 600 }}>⚡ Cuốc xe đang chờ tài xế</h3>}
+                {requests.map((r) => (
+                  <div key={r._id ?? r.id} className="req-card">
+                    <div className="req-card__top">
+                      <span className="req-card__name">{r.name}</span>
+                      <span className="req-card__time">{timeAgo(r.createdAt)}</span>
+                    </div>
+                    <div className="req-card__phone"><Phone size={12} color="#94a3b8" /> {r.phone}</div>
+                    <div className="req-card__route-block">
+                      <div className="req-card__route-line">
+                        <span className="dot dot--green" />
+                        <span className="req-card__connector" />
+                        <span className="dot dot--red" />
+                      </div>
+                      <div className="req-card__route-labels">
+                        <span>{r.startPoint}</span>
+                        <span>{r.endPoint}</span>
+                      </div>
+                    </div>
+                    {r.note && <div className="req-card__note">📝 {r.note}</div>}
+                    <div className="req-card__price-row">
+                      Giá: <span className="req-card__price">{Number(r.price).toLocaleString('vi-VN')} VND</span>
+                    </div>
+                    <button className="driver-card__book-btn" style={{ marginTop: 10 }}
+                      onClick={() => {
+                        if (!user) { openAuth('login'); return; }
+                        setSelectedDriver({ id: r.id, _id: r._id ?? r.id, name: r.name, phone: r.phone,
+                          route: `${r.startPoint} ⇌ ${r.endPoint}`, region: r.region, isActive: true,
+                          createdAt: r.createdAt, price: r.price, note: r.note });
+                      }}>
+                      <Phone size={15} strokeWidth={2.2} /> ĐẶT NGAY
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
           </>
         )}
       </div>
 
-      {/* Booking modal */}
-      <BookingModal
-        driver={selectedDriver}
-        onClose={() => setSelectedDriver(null)}
-        onSuccess={handleBookingSuccess}
-      />
+      <BookingModal driver={selectedDriver} onClose={() => setSelectedDriver(null)} onSuccess={handleBookingSuccess} />
     </>
   );
 };
