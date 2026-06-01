@@ -59,7 +59,7 @@ export const requestsAPI = {
   getLatest: (limit = 6, region?: string, province?: string) =>
     api.get('/requests', { params: { status: 'waiting', limit, ...(region ? { region } : {}), ...(province ? { province } : {}) } }),
   searchByKeyword: (keyword: string, region?: string) =>
-    api.get('/requests', { params: { status: 'waiting', limit: 20, keyword, ...(region ? { region } : {}) } })
+    api.get('/requests', { params: { status: 'waiting', limit: 500, keyword, ...(region ? { region } : {}) } })
 };
 
 export default api;

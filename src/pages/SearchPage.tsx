@@ -23,22 +23,26 @@ const timeAgo = (iso: string) => {
   return `${Math.floor(h / 24)} ngày trước`;
 };
 
-const LIMIT_PER_REGION = 50;
+const LIMIT_PER_REGION = 60;
 
 const SearchPage = () => {
   const { user } = useAuth();
   const { openAuth } = useAuthModal();
   const [keyword, setKeyword] = useState('');
   const [region, setRegion] = useState('');
-  const [allRequests, setAllRequests] = useState<any[]>([]); // full loaded list
-  const [loading, setLoading] = useState(false);
+  const [allRequests, setAllRequests] = useState<any[]>([]); // browse list (latest per region)
+  const [searchResults, setSearchResults] = useState<any[]>([]); // backend search results
+  const [loadingBrowse, setLoadingBrowse] = useState(false);
+  const [loadingSearch, setLoadingSearch] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [error, setError] = useState('');
 
+  const loading = loadingBrowse || loadingSearch;
+
   // Load data when region tab changes
   const loadRequests = useCallback(async (reg: string) => {
-    setLoading(true);
+    setLoadingBrowse(true);
     setError('');
     try {
       let combined: any[] = [];
@@ -67,24 +71,31 @@ const SearchPage = () => {
     } catch {
       setError('Không thể tải dữ liệu. Vui lòng thử lại.');
     } finally {
-      setLoading(false);
+      setLoadingBrowse(false);
     }
   }, []);
 
   useEffect(() => { loadRequests(region); }, [region, loadRequests]);
 
-  // Client-side search filter
-  const filtered = keyword.trim()
-    ? allRequests.filter(r => {
-        const kw = keyword.toLowerCase();
-        return (
-          (r.name  && r.name.toLowerCase().includes(kw)) ||
-          (r.phone && r.phone.includes(kw)) ||
-          (r.startPoint && r.startPoint.toLowerCase().includes(kw)) ||
-          (r.endPoint   && r.endPoint.toLowerCase().includes(kw))
-        );
-      })
-    : allRequests;
+  // Backend search when keyword changes
+  useEffect(() => {
+    if (!keyword.trim()) { setSearchResults([]); return; }
+    setLoadingSearch(true);
+    const t = setTimeout(async () => {
+      try {
+        const res = await requestsAPI.searchByKeyword(keyword.trim(), region || undefined);
+        const raw: any[] = res.data?.requests || [];
+        setSearchResults(raw.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setLoadingSearch(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [keyword, region]);
+
+  const filtered = keyword.trim() ? searchResults : allRequests;
 
   const handleBookingSuccess = () => {
     setSelectedDriver(null);
