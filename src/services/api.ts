@@ -39,7 +39,9 @@ export const authAPI = {
 
 export const driversAPI = {
   getDrivers: (params?: { region?: string; keyword?: string; from?: string; to?: string }) =>
-    api.get('/drivers', { params })
+    api.get('/drivers', { params }),
+  searchDrivers: (params: { from?: string; to?: string; q?: string }) =>
+    api.get('/drivers/search', { params })
 };
 
 export const requestsAPI = {

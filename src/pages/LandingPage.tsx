@@ -74,11 +74,16 @@ const LandingPage = () => {
   const fetchDrivers = useCallback(async (reg: Region, fromVal: string, toVal: string, prov: string) => {
     setLoading(true);
     try {
-      const params: Record<string, string> = { region: reg };
-      if (fromVal.trim()) params.from = fromVal.trim();
-      if (toVal.trim()) params.to = toVal.trim();
-      if (prov.trim()) params.keyword = prov.trim();
-      const res = await driversAPI.getDrivers(params);
+      let res;
+      if (fromVal.trim() || toVal.trim()) {
+        // Nationwide search when route is specified
+        res = await driversAPI.searchDrivers({ from: fromVal.trim() || undefined, to: toVal.trim() || undefined });
+      } else {
+        // Browse by region/province
+        const params: Record<string, string> = { region: reg };
+        if (prov.trim()) params.keyword = prov.trim();
+        res = await driversAPI.getDrivers(params);
+      }
       setDrivers(res.data.drivers || []);
     } catch {
       setDrivers([]);
