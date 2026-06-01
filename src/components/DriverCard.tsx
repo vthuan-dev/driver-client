@@ -8,55 +8,47 @@ interface DriverCardProps {
   isRecent?: boolean;
 }
 
-const maskPhone = (phone: string) => {
-  if (phone.length < 6) return phone;
-  return phone.slice(0, 3) + ' xxxx ' + phone.slice(-3);
-};
-
 const DriverCard = ({ driver, onBook, isNew, isRecent }: DriverCardProps) => {
   const [from, to] = driver.route.split(/[⇌\-–→]+/).map(s => s.trim());
 
   return (
-    <div className="driver-card">
-      {/* Top row: badges */}
-      <div className="driver-card__top">
-        <div style={{ display: 'flex', gap: 6 }}>
+    <div className="req-card">
+      {/* Top row: name + badge */}
+      <div className="req-card__top">
+        <span className="req-card__name">{driver.name}</span>
+        <span style={{ display: 'flex', gap: 6 }}>
           {isNew    && <span className="badge-new">⚡ Mới</span>}
           {isRecent && <span className="badge-recent">✅ Vừa xong</span>}
           {!isNew && !isRecent && <span className="driver-card__type-badge">TÀI XẾ</span>}
-        </div>
+        </span>
       </div>
 
-      {/* Name + phone */}
-      <div className="driver-card__name">{driver.name}</div>
-      <div className="driver-card__subphone">
-        <Phone size={12} color="#94a3b8" />
-        <span>Liên hệ: {maskPhone(driver.phone)}</span>
+      {/* Phone */}
+      <div className="req-card__phone">
+        <Phone size={12} color="#94a3b8" /> {driver.phone}
       </div>
 
-      {/* Route with dots */}
-      <div className="driver-card__route-dots">
-        <div className="driver-card__dot driver-card__dot--from">
+      {/* Connected route */}
+      <div className="req-card__route-block">
+        <div className="req-card__route-line">
           <span className="dot dot--green" />
-          <span>{from || driver.route}</span>
+          <span className="req-card__connector" />
+          <span className="dot dot--red" />
         </div>
-        {to && (
-          <div className="driver-card__dot driver-card__dot--to">
-            <span className="dot dot--red" />
-            <span>{to}</span>
-          </div>
-        )}
+        <div className="req-card__route-labels">
+          <span>{from || driver.route}</span>
+          <span>{to || '—'}</span>
+        </div>
       </div>
 
       {/* Note */}
       {driver.note && (
-        <div className="driver-card__note">Ghi chú: {driver.note}</div>
+        <div className="req-card__note">📝 {driver.note}</div>
       )}
 
       {/* Price */}
-      <div className="driver-card__price-row">
-        Giá:{' '}
-        <span className="driver-card__price">
+      <div className="req-card__price-row">
+        Giá: <span className="req-card__price">
           {driver.price ? Number(driver.price).toLocaleString('vi-VN') + ' VND' : 'Thương lượng'}
         </span>
       </div>
