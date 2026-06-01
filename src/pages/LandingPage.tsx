@@ -100,6 +100,28 @@ const LandingPage = () => {
     return () => clearTimeout(t);
   }, [region, province, fetchDrivers]);
 
+  // Auto-search realtime when from/to changes
+  useEffect(() => {
+    if (!from.trim() && !to.trim()) {
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    setSearchLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const prov = from.trim() || to.trim();
+        const res = await requestsAPI.getLatest(20, region, prov);
+        setSearchResults(res.data?.requests || []);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [from, to, region]);
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!from.trim() && !to.trim()) { setIsSearching(false); return; }
