@@ -110,8 +110,7 @@ const LandingPage = () => {
     setSearchLoading(true);
     const t = setTimeout(async () => {
       try {
-        const prov = from.trim() || to.trim();
-        const res = await requestsAPI.getLatest(20, region, prov);
+        const res = await requestsAPI.getLatest(20, region, undefined, from.trim(), to.trim());
         setSearchResults(res.data?.requests || []);
       } catch {
         setSearchResults([]);
@@ -128,8 +127,7 @@ const LandingPage = () => {
     setIsSearching(true);
     setSearchLoading(true);
     try {
-      const province = from.trim() || to.trim();
-      const res = await requestsAPI.getLatest(20, region, province);
+      const res = await requestsAPI.getLatest(20, region, undefined, from.trim(), to.trim());
       setSearchResults(res.data?.requests || []);
     } catch {
       setSearchResults([]);
