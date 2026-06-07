@@ -146,55 +146,28 @@ const LandingPage = () => {
 
   return (
     <>
-      {/* ── Hero card with auth (when not logged in) ── */}
-      {!user ? (
-        <div className="hero-banner">
-          <img src="/images/banner-ctm.png" alt="Book Ride" className="hero-banner__bg-img" />
-          <div className="hero-banner__overlay" />
-          <div className="hero-banner__content">
-            <h2 className="hero-banner__title">Join the Driver Network</h2>
-            <p className="hero-banner__subtitle">
-              Sign up to contact drivers and post ride requests
-            </p>
-            <div className="hero-banner__buttons">
-              <button
-                className="hero-banner__btn hero-banner__btn--primary"
-                onClick={() => openAuth('register')}
-              >
-                Sign Up
-              </button>
-              <button
-                className="hero-banner__btn hero-banner__btn--secondary"
-                onClick={() => openAuth('login')}
-              >
-                Log In
-              </button>
-            </div>
+      {/* ── Hero card ── */}
+      <div className="hero-card">
+        <img src="/images/banner-ctm.png" alt="IRENY BOOK RIDE" className="hero-card__banner-img" />
+        <div className="hero-card__ticker-overlay">
+          <div className="hero-card__ticker-track">
+            {[
+              'Đặt xe liên tỉnh nhanh chóng',
+              'Hàng trăm tài xế uy tín sẵn sàng',
+              'Kết nối tức thì – Giá thỏa thuận',
+              'Phủ sóng 63 tỉnh thành toàn quốc',
+              user ? `Xin chào, ${user.name.split(' ').pop()} — Đặt xe ngay` : 'Đăng ký miễn phí – Đặt xe dễ dàng',
+              'Đặt xe liên tỉnh nhanh chóng',
+              'Hàng trăm tài xế uy tín sẵn sàng',
+              'Kết nối tức thì – Giá thỏa thuận',
+              'Phủ sóng 63 tỉnh thành toàn quốc',
+              user ? `Xin chào, ${user.name.split(' ').pop()} — Đặt xe ngay` : 'Đăng ký miễn phí – Đặt xe dễ dàng',
+            ].map((text, i) => (
+              <span key={i} className="hero-card__ticker-item">{text}</span>
+            ))}
           </div>
         </div>
-      ) : (
-        <div className="hero-card">
-          <img src="/images/banner-ctm.png" alt="Book Ride" className="hero-card__banner-img" />
-          <div className="hero-card__ticker-overlay">
-            <div className="hero-card__ticker-track">
-              {[
-                'Fast intercity rides',
-                'Hundreds of trusted drivers ready',
-                'Instant connection – Negotiated price',
-                'Nationwide coverage',
-                `Hi, ${user.name.split(' ').pop()} — Book a ride now`,
-                'Fast intercity rides',
-                'Hundreds of trusted drivers ready',
-                'Instant connection – Negotiated price',
-                'Nationwide coverage',
-                `Hi, ${user.name.split(' ').pop()} — Book a ride now`,
-              ].map((text, i) => (
-                <span key={i} className="hero-card__ticker-item">{text}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* ── Ticker ── */}
       <div className="ticker">
